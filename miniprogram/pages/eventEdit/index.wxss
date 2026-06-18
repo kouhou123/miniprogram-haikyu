@@ -77,3 +77,10 @@
   background: #fff;
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
+
+/* 高亮有活动的日期为橙色 */
+.van-calendar .has-event {
+  background-color: #ff8c00 !important;
+  color: #fff !important;
+  border-radius: 6rpx !important;
+}
