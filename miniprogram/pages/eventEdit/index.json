@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "发布活动",
+  "usingComponents": {
+    "van-calendar": "@vant/weapp/calendar/index"
+  }
+}

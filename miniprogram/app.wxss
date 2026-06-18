@@ -1,0 +1,97 @@
+/**app.wxss**/
+page {
+  background: #f2f3f5;
+  color: #1a1a1a;
+  font-size: 28rpx;
+  --primary: #3b6cff;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+button {
+  background: initial;
+}
+button:focus {
+  outline: 0;
+}
+button::after {
+  border: none;
+}
+
+/* 通用卡片 */
+.card {
+  background: #ffffff;
+  border-radius: 20rpx;
+  padding: 28rpx;
+  margin: 0 24rpx 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 主按钮 */
+.btn-primary {
+  background: #3b6cff;
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  padding: 22rpx 0;
+  text-align: center;
+}
+.btn-primary.disabled {
+  background: #c4c9d4;
+}
+
+.btn-ghost {
+  border: 2rpx solid #3b6cff;
+  color: #3b6cff;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  padding: 20rpx 0;
+  text-align: center;
+}
+
+.btn-danger {
+  border: 2rpx solid #ff4d4f;
+  color: #ff4d4f;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  padding: 20rpx 0;
+  text-align: center;
+}
+
+/* 状态标签 */
+.tag {
+  display: inline-block;
+  font-size: 22rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+.tag-open {
+  color: #3b6cff;
+  background: rgba(59, 108, 255, 0.1);
+}
+.tag-full {
+  color: #fa8c16;
+  background: rgba(250, 140, 22, 0.1);
+}
+.tag-closed,
+.tag-cancelled {
+  color: #999;
+  background: #f0f0f0;
+}
+
+/* 空状态 */
+.empty {
+  text-align: center;
+  color: #999;
+  font-size: 26rpx;
+  padding: 120rpx 0;
+}
+
+.muted {
+  color: #999;
+  font-size: 24rpx;
+}

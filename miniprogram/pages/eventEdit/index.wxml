@@ -1,0 +1,49 @@
+<!--pages/eventEdit/index.wxml-->
+<view class="page">
+  <view class="card form">
+    <view class="field">
+      <text class="label">活动日期</text>
+      <view class="picker" bindtap="openCalendar">{{form.date || '选择日期'}}</view>
+    </view>
+
+    <view class="field">
+      <text class="label">活动时间</text>
+      <view class="datetime">
+        <picker mode="time" value="{{form.startTime}}" data-field="startTime" bindchange="onTimeChange">
+          <view class="picker">{{form.startTime || '开始时间'}}</view>
+        </picker>
+        <picker mode="time" value="{{form.endTime}}" data-field="endTime" bindchange="onTimeChange">
+          <view class="picker">{{form.endTime || '结束时间'}}</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="field">
+      <text class="label">活动地点</text>
+      <input class="input" placeholder="请输入活动地点" value="{{form.location}}" data-field="location" bindinput="onInput" />
+    </view>
+
+    <view class="field">
+      <text class="label">人数上限</text>
+      <input class="input" type="number" placeholder="请输入可报名人数" value="{{form.capacity}}" data-field="capacity" bindinput="onInput" />
+    </view>
+
+    <view class="field">
+      <text class="label">备注信息</text>
+      <textarea class="textarea" placeholder="补充活动备注信息" value="{{form.description}}" data-field="description" bindinput="onInput" maxlength="-1"></textarea>
+    </view>
+  </view>
+
+  <van-calendar
+    show="{{showCalendar}}"
+    default-date="{{calendarDefaultDate}}"
+    bind:confirm="onCalendarConfirm"
+    bind:close="onCalendarClose"
+  />
+
+  <view class="submit-bar">
+    <view class="btn-primary {{submitting ? 'disabled' : ''}}" bindtap="submit">
+      {{isEdit ? '保存修改' : '发布活动'}}
+    </view>
+  </view>
+</view>

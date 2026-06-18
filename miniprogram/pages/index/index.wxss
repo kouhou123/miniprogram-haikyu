@@ -1,0 +1,95 @@
+/* pages/index/index.wxss */
+.page {
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 24rpx 16rpx;
+}
+.header-title {
+  font-size: 40rpx;
+  font-weight: 600;
+}
+
+.day-head {
+  font-size: 30rpx;
+  font-weight: 600;
+  padding: 28rpx 24rpx 8rpx;
+  color: #333;
+}
+
+.event {
+  padding: 0;
+  overflow: hidden;
+}
+.event-body {
+  padding: 24rpx 28rpx;
+}
+.event-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.event-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  flex: 1;
+  margin-right: 16rpx;
+}
+.event-meta {
+  color: #666;
+  font-size: 24rpx;
+  margin-top: 12rpx;
+}
+.event-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18rpx;
+}
+.event-count {
+  font-size: 24rpx;
+  color: #333;
+}
+.event-remain {
+  font-size: 24rpx;
+  color: #3b6cff;
+}
+
+.event-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+.act {
+  flex: 1;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+}
+.act.disabled {
+  background: #c4c9d4;
+}
+
+.loading {
+  text-align: center;
+  padding: 24rpx 0;
+}
+
+.fab {
+  position: fixed;
+  right: 40rpx;
+  bottom: 60rpx;
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: #3b6cff;
+  color: #fff;
+  font-size: 60rpx;
+  line-height: 96rpx;
+  text-align: center;
+  box-shadow: 0 8rpx 24rpx rgba(59, 108, 255, 0.4);
+}

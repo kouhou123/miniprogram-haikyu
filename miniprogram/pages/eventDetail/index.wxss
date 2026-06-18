@@ -1,0 +1,118 @@
+/* pages/eventDetail/index.wxss */
+.page {
+  min-height: 100vh;
+  padding-bottom: 160rpx;
+}
+
+.cover {
+  width: 100%;
+  height: 360rpx;
+  display: block;
+  background: #eee;
+}
+
+.card {
+  margin-top: 24rpx;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.title {
+  font-size: 38rpx;
+  font-weight: 700;
+  flex: 1;
+  margin-right: 16rpx;
+}
+.meta {
+  color: #555;
+  font-size: 26rpx;
+  margin-top: 16rpx;
+}
+.count-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+.remain {
+  color: #3b6cff;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.link {
+  color: #3b6cff;
+  font-size: 26rpx;
+  font-weight: 400;
+}
+.desc {
+  color: #444;
+  font-size: 28rpx;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}
+
+.photo-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.photo-item {
+  position: relative;
+  width: 210rpx;
+  height: 210rpx;
+}
+.photo-item image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+}
+.photo-del {
+  position: absolute;
+  top: -10rpx;
+  right: -10rpx;
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 36rpx;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 28rpx;
+}
+
+.roster-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 18rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.roster-name {
+  font-size: 28rpx;
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  display: flex;
+  gap: 16rpx;
+  box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+.flex1 {
+  flex: 1;
+}

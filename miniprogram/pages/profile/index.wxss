@@ -1,0 +1,100 @@
+/* pages/profile/index.wxss */
+.page {
+  min-height: 100vh;
+  padding-top: 24rpx;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+}
+.avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+.info {
+  flex: 1;
+  margin-left: 24rpx;
+}
+.nick {
+  font-size: 34rpx;
+  font-weight: 600;
+}
+.role {
+  margin-top: 12rpx;
+}
+.role-badge {
+  font-size: 22rpx;
+  color: #999;
+  background: #f0f0f0;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+}
+.role-badge.organizer {
+  color: #3b6cff;
+  background: rgba(59, 108, 255, 0.1);
+}
+.edit-link {
+  color: #3b6cff;
+  font-size: 26rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  margin-bottom: 16rpx;
+}
+.edit-row {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.edit-label {
+  width: 140rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+.edit-input {
+  flex: 1;
+  font-size: 28rpx;
+}
+.avatar-btn {
+  padding: 0;
+  margin: 0;
+  line-height: normal;
+  background: transparent;
+}
+.avatar-sm {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: #eee;
+}
+.edit-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 28rpx;
+}
+.flex1 {
+  flex: 1;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 30rpx;
+}
+.arrow {
+  color: #ccc;
+  font-size: 40rpx;
+}
+
+.tip {
+  color: #999;
+  font-size: 26rpx;
+  line-height: 1.6;
+}

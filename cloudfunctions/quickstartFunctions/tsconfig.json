@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "rootDir": "src",
+    "outDir": ".",
+    "esModuleInterop": true,
+    "allowJs": false,
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "sourceMap": false,
+    "declaration": false,
+    "removeComments": false,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "types": ["miniprogram-api-typings"],
+    "paths": {
+      "@vant/weapp/*": ["node_modules/@vant/weapp/dist/*"]
+    },
+    "lib": ["ES6"]
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}

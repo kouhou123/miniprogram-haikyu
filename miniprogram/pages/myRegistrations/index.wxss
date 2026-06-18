@@ -1,0 +1,33 @@
+/* pages/myRegistrations/index.wxss */
+.page {
+  min-height: 100vh;
+  padding-top: 24rpx;
+}
+
+.reg-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.reg-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  flex: 1;
+  margin-right: 16rpx;
+}
+.reg-meta {
+  color: #666;
+  font-size: 24rpx;
+  margin-top: 12rpx;
+}
+.reg-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20rpx;
+  border-top: 1rpx solid #f0f0f0;
+  padding-top: 20rpx;
+}
+.small {
+  padding: 12rpx 32rpx;
+  font-size: 26rpx;
+}

@@ -1,0 +1,18 @@
+<!--pages/myRegistrations/index.wxml-->
+<view class="page">
+  <view wx:if="{{!loading && list.length === 0}}" class="empty">你还没有报名任何活动</view>
+
+  <view class="card reg" wx:for="{{list}}" wx:key="_id">
+    <view class="reg-main" data-id="{{item.eventId}}" bindtap="goDetail">
+      <view class="reg-head">
+        <text class="reg-title">{{item.event.title}}</text>
+        <text class="tag tag-{{item.event.status}}">{{item.event.statusText}}</text>
+      </view>
+      <view class="reg-meta">🕒 {{item.event.timeText}}</view>
+      <view class="reg-meta" wx:if="{{item.event.location}}">📍 {{item.event.location}}</view>
+    </view>
+    <view class="reg-actions">
+      <view class="btn-danger small" data-id="{{item.eventId}}" bindtap="cancelRegister">取消报名</view>
+    </view>
+  </view>
+</view>

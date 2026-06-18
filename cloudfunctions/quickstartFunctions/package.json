@@ -1,0 +1,21 @@
+{
+  "name": "quickstartFunctions",
+  "version": "2.0.0",
+  "description": "活动预约系统云函数",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vant/weapp": "^1.11.7",
+    "wx-server-sdk": "~2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.0",
+    "miniprogram-api-typings": "^5.2.1",
+    "typescript": "^5.4.0"
+  }
+}
