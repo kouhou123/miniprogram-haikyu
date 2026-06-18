@@ -1,5 +1,5 @@
 import { success, ApiResponse } from "../core/response";
-import { requireLogin } from "../core/auth";
+import { requireLogin, isOrganizer, requireOrganizer } from "../core/auth";
 import { db, _ } from "../core/cloud";
 import {
   Collections,
@@ -10,22 +10,52 @@ import { WxContext } from "../core/context";
 import { requireString, optionalString } from "../core/validate";
 import { BizError, ErrorCode } from "../core/errors";
 
-// 报名（事务保证不超额）
-export async function register(data: any, ctx: WxContext): Promise<ApiResponse> {
-  const openid = requireLogin(ctx.openid);
-  const eventId = requireString(data?.eventId, "eventId");
-  const userName = optionalString(data?.userName);
-  const userPhone = optionalString(data?.userPhone);
+function registrations() {
+  return db.collection(Collections.REGISTRATIONS);
+}
 
-  // 是否已有有效报名
-  const existing = await db
-    .collection(Collections.REGISTRATIONS)
-    .where({ eventId, openid, status: RegistrationStatus.REGISTERED })
-    .get();
-  if (existing.data.length > 0) {
-    throw new BizError(ErrorCode.ALREADY_REGISTERED, "您已报名该活动");
+function events() {
+  return db.collection(Collections.EVENTS);
+}
+
+function normalizeRegistration(reg: any, openid = "", organizer = false) {
+  const createdByAdmin = !!reg.createdByAdmin;
+  const canEdit = organizer || (!!openid && reg.openid === openid && !createdByAdmin);
+  const canCancel = !!openid && reg.openid === openid && !createdByAdmin;
+  return {
+    ...reg,
+    name: reg.name || reg.userName || "",
+    remark: reg.remark || "",
+    canEdit,
+    canCancel,
+    canRemove: organizer,
+  };
+}
+
+async function getEventOrThrow(eventId: string): Promise<any> {
+  const res = await events()
+    .doc(eventId)
+    .get()
+    .catch(() => null);
+  if (!res || !res.data) {
+    throw new BizError(ErrorCode.NOT_FOUND, "活动不存在");
   }
+  return res.data;
+}
 
+function assertCanJoin(ev: any) {
+  if (ev.status !== EventStatus.OPEN) {
+    throw new BizError(ErrorCode.EVENT_CLOSED, "活动未开放报名");
+  }
+  if ((ev.enrolledCount || 0) >= (ev.capacity || 0)) {
+    throw new BizError(ErrorCode.EVENT_FULL, "名额已满");
+  }
+}
+
+async function addRegistration(
+  eventId: string,
+  doc: Record<string, any>
+): Promise<{ _id: string; enrolledCount: number }> {
   const transaction = await db.startTransaction();
   try {
     const eventDoc = await transaction
@@ -37,29 +67,21 @@ export async function register(data: any, ctx: WxContext): Promise<ApiResponse> 
       await transaction.rollback();
       throw new BizError(ErrorCode.NOT_FOUND, "活动不存在");
     }
-    if (ev.status !== EventStatus.OPEN) {
-      await transaction.rollback();
-      throw new BizError(ErrorCode.EVENT_CLOSED, "活动已结束或已关闭报名");
-    }
-    if (ev.enrolledCount >= ev.capacity) {
-      await transaction.rollback();
-      throw new BizError(ErrorCode.EVENT_FULL, "名额已满");
-    }
+    assertCanJoin(ev);
 
     const now = Date.now();
-    await transaction.collection(Collections.REGISTRATIONS).add({
+    const addRes = await transaction.collection(Collections.REGISTRATIONS).add({
       data: {
+        ...doc,
         eventId,
-        openid,
-        userName,
-        userPhone,
         status: RegistrationStatus.REGISTERED,
         createdAt: now,
+        updatedAt: now,
         cancelledAt: 0,
       },
     });
 
-    const newCount = ev.enrolledCount + 1;
+    const newCount = (ev.enrolledCount || 0) + 1;
     const patch: any = { enrolledCount: _.inc(1), updatedAt: now };
     if (newCount >= ev.capacity) {
       patch.status = EventStatus.FULL;
@@ -70,88 +92,213 @@ export async function register(data: any, ctx: WxContext): Promise<ApiResponse> 
       .update({ data: patch });
 
     await transaction.commit();
-    return success({ eventId, enrolledCount: newCount });
+    return { _id: addRes._id, enrolledCount: newCount };
   } catch (e) {
-    if (e instanceof BizError) throw e;
     try {
       await transaction.rollback();
     } catch (_e) {
-      /* 忽略回滚异常 */
+      /* ignore rollback errors */
     }
     throw e;
   }
 }
 
-// 取消报名（事务回退名额）
-export async function cancel(data: any, ctx: WxContext): Promise<ApiResponse> {
-  const openid = requireLogin(ctx.openid);
-  const eventId = requireString(data?.eventId, "eventId");
-
-  const existing = await db
-    .collection(Collections.REGISTRATIONS)
-    .where({ eventId, openid, status: RegistrationStatus.REGISTERED })
-    .get();
-  if (existing.data.length === 0) {
-    throw new BizError(ErrorCode.NOT_REGISTERED, "您未报名该活动");
-  }
-  const regId = existing.data[0]._id;
-
+async function decrementEventCount(eventId: string): Promise<void> {
   const transaction = await db.startTransaction();
   try {
     const eventDoc = await transaction
       .collection(Collections.EVENTS)
       .doc(eventId)
-      .get();
-    const ev = eventDoc.data;
-    const now = Date.now();
-
-    await transaction
-      .collection(Collections.REGISTRATIONS)
-      .doc(regId)
-      .update({
-        data: { status: RegistrationStatus.CANCELLED, cancelledAt: now },
-      });
-
-    if (ev) {
-      const patch: any = { enrolledCount: _.inc(-1), updatedAt: now };
-      // 取消后若原为已满则重新开放
-      if (ev.status === EventStatus.FULL) {
-        patch.status = EventStatus.OPEN;
-      }
-      await transaction
-        .collection(Collections.EVENTS)
-        .doc(eventId)
-        .update({ data: patch });
+      .get()
+      .catch(() => null);
+    const ev = eventDoc && eventDoc.data;
+    if (!ev) {
+      await transaction.commit();
+      return;
     }
 
+    const now = Date.now();
+    const patch: any = {
+      enrolledCount: _.inc(-1),
+      updatedAt: now,
+    };
+    if (ev.status === EventStatus.FULL) {
+      patch.status = EventStatus.OPEN;
+    }
+    await transaction
+      .collection(Collections.EVENTS)
+      .doc(eventId)
+      .update({ data: patch });
+
     await transaction.commit();
-    return success({ eventId });
   } catch (e) {
     try {
       await transaction.rollback();
     } catch (_e) {
-      /* 忽略回滚异常 */
+      /* ignore rollback errors */
     }
     throw e;
   }
 }
 
-// 我的报名列表（附带活动信息）
-export async function myList(data: any, ctx: WxContext): Promise<ApiResponse> {
+export async function register(data: any, ctx: WxContext): Promise<ApiResponse> {
   const openid = requireLogin(ctx.openid);
-  const status = data?.status || RegistrationStatus.REGISTERED;
+  const eventId = requireString(data?.eventId, "eventId");
+  const name = requireString(data?.name || data?.userName, "name");
+  const remark = optionalString(data?.remark);
 
-  const regs = await db
-    .collection(Collections.REGISTRATIONS)
-    .where({ openid, status })
+  const existing = await registrations()
+    .where({ eventId, openid, status: RegistrationStatus.REGISTERED })
+    .get();
+  if (existing.data.length > 0) {
+    throw new BizError(ErrorCode.ALREADY_REGISTERED, "您已报名该活动");
+  }
+
+  const result = await addRegistration(eventId, {
+    openid,
+    name,
+    remark,
+    userName: name,
+    userPhone: optionalString(data?.userPhone),
+    createdByAdmin: false,
+  });
+
+  return success({ eventId, ...result });
+}
+
+export async function adminCreate(
+  data: any,
+  ctx: WxContext
+): Promise<ApiResponse> {
+  const adminOpenid = await requireOrganizer(ctx.openid);
+  const eventId = requireString(data?.eventId, "eventId");
+  const name = requireString(data?.name || data?.userName, "name");
+  const remark = optionalString(data?.remark);
+
+  const result = await addRegistration(eventId, {
+    openid: "",
+    name,
+    remark,
+    userName: name,
+    userPhone: "",
+    createdByAdmin: true,
+    createdByOpenid: adminOpenid,
+  });
+
+  return success({ eventId, ...result });
+}
+
+export async function update(data: any, ctx: WxContext): Promise<ApiResponse> {
+  const openid = requireLogin(ctx.openid);
+  const id = requireString(data?._id, "_id");
+  const name = requireString(data?.name || data?.userName, "name");
+  const remark = optionalString(data?.remark);
+
+  const regRes = await registrations()
+    .doc(id)
+    .get()
+    .catch(() => null);
+  if (!regRes || !regRes.data) {
+    throw new BizError(ErrorCode.NOT_FOUND, "报名记录不存在");
+  }
+
+  const organizer = await isOrganizer(openid);
+  const reg = regRes.data;
+  const ownRecord = reg.openid === openid && !reg.createdByAdmin;
+  if (!organizer && !ownRecord) {
+    throw new BizError(ErrorCode.FORBIDDEN, "无权修改该报名");
+  }
+  if (reg.status !== RegistrationStatus.REGISTERED) {
+    throw new BizError(ErrorCode.NOT_REGISTERED, "报名记录已取消");
+  }
+
+  const patch = {
+    name,
+    remark,
+    userName: name,
+    updatedAt: Date.now(),
+  };
+  await registrations().doc(id).update({ data: patch });
+  return success({ _id: id, ...patch });
+}
+
+export async function cancel(data: any, ctx: WxContext): Promise<ApiResponse> {
+  const openid = requireLogin(ctx.openid);
+  const eventId = requireString(data?.eventId, "eventId");
+
+  const existing = await registrations()
+    .where({ eventId, openid, status: RegistrationStatus.REGISTERED })
+    .get();
+  if (existing.data.length === 0) {
+    throw new BizError(ErrorCode.NOT_REGISTERED, "您未报名该活动");
+  }
+
+  const reg = existing.data[0];
+  const now = Date.now();
+  await registrations()
+    .doc(reg._id)
+    .update({
+      data: {
+        status: RegistrationStatus.CANCELLED,
+        cancelledAt: now,
+        updatedAt: now,
+      },
+    });
+  await decrementEventCount(eventId);
+
+  return success({ eventId, _id: reg._id });
+}
+
+export async function remove(data: any, ctx: WxContext): Promise<ApiResponse> {
+  await requireOrganizer(ctx.openid);
+  const id = requireString(data?._id, "_id");
+
+  const regRes = await registrations()
+    .doc(id)
+    .get()
+    .catch(() => null);
+  if (!regRes || !regRes.data) {
+    throw new BizError(ErrorCode.NOT_FOUND, "报名记录不存在");
+  }
+
+  const reg = regRes.data;
+  if (reg.status !== RegistrationStatus.REGISTERED) {
+    return success({ _id: id, removed: false });
+  }
+
+  const now = Date.now();
+  await registrations()
+    .doc(id)
+    .update({
+      data: {
+        status: RegistrationStatus.CANCELLED,
+        cancelledAt: now,
+        updatedAt: now,
+        removedByAdmin: true,
+      },
+    });
+  await decrementEventCount(reg.eventId);
+
+  return success({ _id: id, removed: true });
+}
+
+export async function list(data: any, ctx: WxContext): Promise<ApiResponse> {
+  const openid = requireLogin(ctx.openid);
+  const organizer = await isOrganizer(openid);
+  const eventId = optionalString(data?.eventId);
+
+  const filter: any = { status: RegistrationStatus.REGISTERED };
+  if (eventId) filter.eventId = eventId;
+
+  const regs = await registrations()
+    .where(filter)
     .orderBy("createdAt", "desc")
     .get();
 
-  const eventIds = regs.data.map((r: any) => r.eventId);
+  const eventIds = Array.from(new Set(regs.data.map((r: any) => r.eventId)));
   const eventsMap: Record<string, any> = {};
   if (eventIds.length > 0) {
-    const evRes = await db
-      .collection(Collections.EVENTS)
+    const evRes = await events()
       .where({ _id: _.in(eventIds) })
       .get();
     evRes.data.forEach((e: any) => {
@@ -160,35 +307,34 @@ export async function myList(data: any, ctx: WxContext): Promise<ApiResponse> {
   }
 
   const listData = regs.data.map((r: any) => ({
-    ...r,
+    ...normalizeRegistration(r, openid, organizer),
     event: eventsMap[r.eventId] || null,
   }));
 
-  return success({ list: listData });
+  return success({ list: listData, total: listData.length, isOrganizer: organizer });
 }
 
-// 活动报名名单（仅活动发布者可看）
-export async function eventRoster(data: any, ctx: WxContext): Promise<ApiResponse> {
+export async function myList(data: any, ctx: WxContext): Promise<ApiResponse> {
+  return list(data, ctx);
+}
+
+export async function eventRoster(
+  data: any,
+  ctx: WxContext
+): Promise<ApiResponse> {
   const openid = requireLogin(ctx.openid);
   const eventId = requireString(data?.eventId, "eventId");
+  await getEventOrThrow(eventId);
 
-  const evRes = await db
-    .collection(Collections.EVENTS)
-    .doc(eventId)
-    .get()
-    .catch(() => null);
-  if (!evRes || !evRes.data) {
-    throw new BizError(ErrorCode.NOT_FOUND, "活动不存在");
-  }
-  if (evRes.data.organizerOpenid !== openid) {
-    throw new BizError(ErrorCode.FORBIDDEN, "只能查看自己发布的活动报名名单");
-  }
-
-  const regs = await db
-    .collection(Collections.REGISTRATIONS)
+  const organizer = await isOrganizer(openid);
+  const regs = await registrations()
     .where({ eventId, status: RegistrationStatus.REGISTERED })
     .orderBy("createdAt", "asc")
     .get();
 
-  return success({ list: regs.data, total: regs.data.length });
+  const listData = regs.data.map((r: any) =>
+    normalizeRegistration(r, openid, organizer)
+  );
+
+  return success({ list: listData, total: listData.length, isOrganizer: organizer });
 }

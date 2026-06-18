@@ -4,7 +4,7 @@
     <view class="header-title">活动日历</view>
   </view>
 
-  <van-cell title="选择单个日期" value="{{ dateLabel }}" is-link bind:click="onDisplay" />
+  <van-cell title="选择日期" value="{{ dateLabel }}" is-link bind:click="onDisplay" />
 
   <van-calendar
     show="{{ showCalendar }}"
@@ -12,37 +12,72 @@
     min-date="{{ minDate }}"
     max-date="{{ maxDate }}"
     default-date="{{ selectedDate }}"
+    formatter="{{ calendarFormatter }}"
     bind:close="onCloseCalendar"
-    bind:confirm="onConfirmDate"
+    bind:select="onSelectDate"
   />
 
   <view class="day-head">{{ dateLabel }} 的活动</view>
+  <view wx:if="{{dayHint}}" class="hint">{{dayHint}}</view>
 
   <view wx:if="{{ dayLoading }}" class="muted loading">加载中...</view>
   <view wx:elif="{{ dayEvents.length === 0 }}" class="empty">这一天暂无活动</view>
 
   <view wx:else class="list">
-    <view class="card event" wx:for="{{dayEvents}}" wx:key="_id">
+    <view
+      class="card event clickable"
+      wx:for="{{dayEvents}}"
+      wx:key="_id"
+      data-id="{{item._id}}"
+      data-status="{{item.status}}"
+      data-registered="{{item.registered}}"
+      bindtap="onCardTap"
+    >
       <view class="event-body">
         <view class="event-head">
           <text class="event-title">{{item.title}}</text>
           <text class="tag tag-{{item.status}}">{{item.statusText}}</text>
         </view>
-        <view class="event-meta">🕒 {{item.timeText}}</view>
-        <view class="event-meta" wx:if="{{item.location}}">📍 {{item.location}}</view>
+        <view class="event-meta">时间：{{item.timeText}}</view>
+        <view class="event-meta" wx:if="{{item.location}}">地点：{{item.location}}</view>
+        <view class="event-meta" wx:if="{{item.description}}">详情：{{item.description}}</view>
         <view class="event-foot">
           <text class="event-count">已报名 {{item.enrolledCount}}/{{item.capacity}}</text>
           <text class="event-remain" wx:if="{{item.status === 'open'}}">剩余 {{item.remaining}}</text>
         </view>
+        <view class="event-tip">
+          <text wx:if="{{item.registered}}" class="tip-done">已报名</text>
+          <text wx:elif="{{item.status === 'open'}}" class="tip-open">点击卡片报名</text>
+          <text wx:else class="tip-muted">{{item.statusText}}</text>
+        </view>
         <view class="event-actions">
-          <view class="btn-ghost act" data-id="{{item._id}}" bindtap="goDetail">查看</view>
-          <view wx:if="{{item.registered}}" class="btn-danger act" data-id="{{item._id}}" bindtap="onCancel">取消报名</view>
-          <view wx:elif="{{item.status === 'open'}}" class="btn-primary act" data-id="{{item._id}}" bindtap="onRegister">报名</view>
+          <view class="btn-ghost act" data-id="{{item._id}}" catchtap="goDetail">查看</view>
+          <view wx:if="{{item.registered}}" class="btn-danger act" data-id="{{item._id}}" catchtap="onCancel">取消报名</view>
+          <view wx:elif="{{item.status === 'open'}}" class="btn-primary act" data-id="{{item._id}}" data-status="{{item.status}}" data-registered="{{item.registered}}" catchtap="onCardTap">立即报名</view>
           <view wx:else class="btn-primary act disabled">{{item.statusText}}</view>
         </view>
       </view>
     </view>
   </view>
 
-  <view wx:if="{{isOrganizer}}" class="fab" bindtap="goCreate">＋</view>
+  <view wx:if="{{isOrganizer}}" class="fab" bindtap="goCreate">+</view>
+
+  <view wx:if="{{showRegForm}}" class="modal-mask" catchtap="closeRegForm">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">活动报名</view>
+      <view wx:if="{{regEventTitle}}" class="modal-sub">{{regEventTitle}}</view>
+      <view class="form-row">
+        <text class="form-label">名字</text>
+        <input class="form-input" placeholder="请输入名字" value="{{regForm.name}}" bindinput="onRegNameInput" />
+      </view>
+      <view class="form-row top">
+        <text class="form-label">备注</text>
+        <textarea class="form-textarea" placeholder="请输入备注" value="{{regForm.remark}}" bindinput="onRegRemarkInput"></textarea>
+      </view>
+      <view class="modal-actions">
+        <view class="btn-ghost flex1" bindtap="closeRegForm">取消</view>
+        <view class="btn-primary flex1" bindtap="submitRegistration">报名</view>
+      </view>
+    </view>
+  </view>
 </view>

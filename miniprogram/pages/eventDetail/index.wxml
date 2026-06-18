@@ -7,8 +7,8 @@
       <text class="title">{{event.title}}</text>
       <text class="tag tag-{{event.status}}">{{statusTextStr}}</text>
     </view>
-    <view class="meta">🕒 {{timeText}}</view>
-    <view class="meta" wx:if="{{event.location}}">📍 {{event.location}}</view>
+    <view class="meta">时间：{{timeText}}</view>
+    <view class="meta" wx:if="{{event.location}}">地点：{{event.location}}</view>
     <view class="count-row">
       <text>已报名 {{event.enrolledCount}}/{{event.capacity}}</text>
       <text class="remain" wx:if="{{event.status === 'open'}}">剩余 {{remaining}} 个名额</text>
@@ -20,11 +20,10 @@
     <view class="desc">{{event.description}}</view>
   </view>
 
-  <!-- 照片 -->
   <view class="card" wx:if="{{photos.length > 0 || isOwner}}">
     <view class="section-title">
       活动照片
-      <text class="link" wx:if="{{isOwner}}" bindtap="uploadPhoto">＋ 上传</text>
+      <text class="link" wx:if="{{isOwner}}" bindtap="uploadPhoto">上传</text>
     </view>
     <view class="photo-grid">
       <view class="photo-item" wx:for="{{photos}}" wx:key="_id">
@@ -35,33 +34,57 @@
     <view wx:if="{{photos.length === 0}}" class="muted">暂无照片</view>
   </view>
 
-  <!-- 组织者：报名名单 -->
-  <view class="card" wx:if="{{isOwner}}">
+  <view class="card">
     <view class="section-title">
       报名名单
-      <text class="link" bindtap="toggleRoster">{{showRoster ? '收起' : '查看'}}</text>
+      <text class="link" wx:if="{{isOrganizer && event.status === 'open'}}" bindtap="openAdminCreateForm">新增</text>
     </view>
-    <view wx:if="{{showRoster}}">
-      <view wx:if="{{roster.length === 0}}" class="muted">还没有人报名</view>
-      <view class="roster-item" wx:for="{{roster}}" wx:key="_id">
-        <text class="roster-name">{{item.userName || '微信用户'}}</text>
-        <text class="muted">{{item.userPhone}}</text>
+    <view wx:if="{{roster.length === 0}}" class="muted">暂无报名</view>
+    <view class="roster-item" wx:for="{{roster}}" wx:key="_id">
+      <view class="roster-main">
+        <view class="roster-name">{{item.name || item.userName || '未填写'}}</view>
+        <view class="roster-remark" wx:if="{{item.remark}}">{{item.remark}}</view>
+        <view class="muted" wx:if="{{item.createdByAdmin}}">管理员添加</view>
+      </view>
+      <view class="roster-actions" wx:if="{{item.canEdit || item.canRemove}}">
+        <text class="link action-link" wx:if="{{item.canEdit}}" data-id="{{item._id}}" catchtap="editRosterItem">编辑</text>
+        <text class="danger-link action-link" wx:if="{{item.canRemove}}" data-id="{{item._id}}" catchtap="removeRosterItem">删除</text>
       </view>
     </view>
   </view>
 
-  <!-- 底部操作栏 -->
   <view class="footer">
     <block wx:if="{{isOwner}}">
-      <view class="btn-ghost flex1" bindtap="goEdit">编辑</view>
+      <view class="btn-ghost flex1" bindtap="goEdit">编辑活动</view>
       <view class="btn-ghost flex1" wx:if="{{event.status === 'open' || event.status === 'full'}}" bindtap="closeEvent">关闭报名</view>
       <view class="btn-danger flex1" wx:if="{{event.status !== 'cancelled'}}" bindtap="cancelEvent">取消活动</view>
     </block>
     <block wx:else>
+      <view wx:if="{{myRegistration}}" class="btn-ghost flex1" bindtap="openEditMyForm">修改报名</view>
       <view wx:if="{{myRegistration}}" class="btn-danger flex1" bindtap="cancelRegister">取消报名</view>
-      <view wx:elif="{{event.status === 'open'}}" class="btn-primary flex1" bindtap="register">立即报名</view>
+      <view wx:elif="{{event.status === 'open'}}" class="btn-primary flex1" bindtap="openRegisterForm">立即报名</view>
       <view wx:elif="{{event.status === 'full'}}" class="btn-primary flex1 disabled">名额已满</view>
       <view wx:else class="btn-primary flex1 disabled">{{statusTextStr}}</view>
     </block>
+  </view>
+
+  <view wx:if="{{showRegForm}}" class="modal-mask" catchtap="closeRegForm">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">
+        {{regMode === 'adminCreate' ? '新增报名' : regMode === 'edit' ? '编辑报名' : '活动报名'}}
+      </view>
+      <view class="form-row">
+        <text class="form-label">名字</text>
+        <input class="form-input" placeholder="请输入名字" value="{{regForm.name}}" bindinput="onRegNameInput" />
+      </view>
+      <view class="form-row top">
+        <text class="form-label">备注</text>
+        <textarea class="form-textarea" placeholder="请输入备注" value="{{regForm.remark}}" bindinput="onRegRemarkInput"></textarea>
+      </view>
+      <view class="modal-actions">
+        <view class="btn-ghost flex1" bindtap="closeRegForm">取消</view>
+        <view class="btn-primary flex1" bindtap="submitRegistration">保存</view>
+      </view>
+    </view>
   </view>
 </view>

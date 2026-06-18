@@ -37,7 +37,6 @@
   <van-calendar
     show="{{showCalendar}}"
     default-date="{{calendarDefaultDate}}"
-    formatter="{{formatter}}"
     bind:confirm="onCalendarConfirm"
     bind:close="onCalendarClose"
   />

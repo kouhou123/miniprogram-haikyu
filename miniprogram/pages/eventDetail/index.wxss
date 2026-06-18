@@ -93,12 +93,87 @@
 
 .roster-item {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   padding: 18rpx 0;
   border-bottom: 1rpx solid #f0f0f0;
 }
+.roster-main {
+  flex: 1;
+  min-width: 0;
+}
 .roster-name {
   font-size: 28rpx;
+  font-weight: 600;
+}
+.roster-remark {
+  color: #555;
+  font-size: 26rpx;
+  line-height: 1.5;
+  margin-top: 8rpx;
+  white-space: pre-wrap;
+}
+.roster-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-left: 20rpx;
+  white-space: nowrap;
+}
+.action-link {
+  font-size: 26rpx;
+}
+.danger-link {
+  color: #ff4d4f;
+}
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+}
+.modal {
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 32rpx 28rpx calc(32rpx + env(safe-area-inset-bottom));
+}
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  margin-bottom: 20rpx;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.form-row.top {
+  align-items: flex-start;
+}
+.form-label {
+  width: 110rpx;
+  color: #333;
+  font-size: 28rpx;
+}
+.form-input {
+  flex: 1;
+  font-size: 28rpx;
+}
+.form-textarea {
+  flex: 1;
+  min-height: 150rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+.modal-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 28rpx;
 }
 
 .footer {

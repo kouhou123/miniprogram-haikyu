@@ -5,7 +5,6 @@ import * as userModule from "./modules/user";
 import * as eventModule from "./modules/event";
 import * as registrationModule from "./modules/registration";
 import * as photoModule from "./modules/photo";
-import * as devModule from "./modules/dev";
 
 export interface RequestEvent {
   type: string;
@@ -26,22 +25,24 @@ const routes: Record<string, Handler> = {
   "event.create": eventModule.create,
   "event.update": eventModule.update,
   "event.list": eventModule.list,
+  "event.activeDates": eventModule.activeDates,
   "event.byDate": eventModule.byDate,
   "event.detail": eventModule.detail,
   "event.close": eventModule.close,
   "event.cancel": eventModule.cancel,
   // 报名
   "registration.register": registrationModule.register,
+  "registration.adminCreate": registrationModule.adminCreate,
   "registration.cancel": registrationModule.cancel,
+  "registration.update": registrationModule.update,
+  "registration.remove": registrationModule.remove,
+  "registration.list": registrationModule.list,
   "registration.myList": registrationModule.myList,
   "registration.eventRoster": registrationModule.eventRoster,
   // 照片
   "photo.add": photoModule.add,
   "photo.list": photoModule.list,
   "photo.delete": photoModule.remove,
-  // 测试用 mock 数据
-  "dev.seedMockUsers": devModule.seedMockUsers,
-  "dev.toggleOrganizer": devModule.toggleOrganizer,
 };
 
 // 统一分发 + 异常处理

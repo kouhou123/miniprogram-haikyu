@@ -73,49 +73,10 @@ Page({
     this.setData({ [`form.${field}`]: e.detail.value });
   },
 
-  // 加载指定月份的活动日期，用于日历高亮
-  loadMonthEvents(defaultDateTs) {
-    const d = new Date(defaultDateTs || Date.now());
-    const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
-    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime();
-    // 拉取一定量的活动然后在前端过滤（简化实现）
-    request("event.list", { page: 1, pageSize: 100 }, { toast: false })
-      .then((data) => {
-        const list = data.list || [];
-        const map = {};
-        list.forEach((ev) => {
-          if (ev && ev.startTime >= monthStart && ev.startTime < monthEnd) {
-            map[formatDate(ev.startTime)] = true;
-          }
-        });
-        this.setData({ eventDaysMap: map });
-      })
-      .catch(() => {
-        this.setData({ eventDaysMap: {} });
-      });
-  },
-
-  // calendar formatter：为有活动的日期添加 className 用于样式高亮
-  formatter(config) {
-    const pages = getCurrentPages();
-    const page = pages[pages.length - 1];
-    const map = (page && page.data && page.data.eventDaysMap) || {};
-    const raw = config && config.date ? config.date : config;
-    const ts = raw instanceof Date ? raw.getTime() : raw;
-    const key = formatDate(ts);
-    if (map[key]) {
-      config.className = (config.className ? config.className + " " : "") + "has-event";
-    }
-    return config;
-  },
-
   openCalendar() {
     const cur = this.data.form.date;
-    const def = cur ? new Date(cur.replace(/-/g, "/")).getTime() : Date.now();
-    // 先加载当月有活动的日期以高亮显示
-    this.loadMonthEvents(def);
     this.setData({
-      calendarDefaultDate: def,
+      calendarDefaultDate: cur ? new Date(cur.replace(/-/g, "/")).getTime() : Date.now(),
       showCalendar: true,
     });
   },
