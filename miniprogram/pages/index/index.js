@@ -244,6 +244,29 @@ Page({
     });
   },
 
+  onDeleteEvent(e) {
+    const { id, title } = e.currentTarget.dataset;
+    wx.showModal({
+      title: "删除活动",
+      content: `确定要删除「${title}」吗？删除后报名记录将一并清除，且不可恢复。`,
+      confirmColor: "#ee0a24",
+      success: (res) => {
+        if (!res.confirm) return;
+        request(
+          "event.remove",
+          { _id: id },
+          { loading: true, loadingText: "删除中..." }
+        )
+          .then(() => {
+            wx.showToast({ title: "已删除" });
+            this.loadActiveDates();
+            this.loadDayEvents();
+          })
+          .catch(() => {});
+      },
+    });
+  },
+
   goDetail(e) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({ url: `/pages/eventDetail/index?id=${id}` });

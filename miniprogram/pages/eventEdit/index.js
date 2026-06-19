@@ -2,6 +2,32 @@
 const { request } = require("../../utils/request");
 const { formatDate, formatTime } = require("../../utils/format");
 
+const DAY = 24 * 60 * 60 * 1000;
+
+function startOfDay(ts) {
+  const d = new Date(ts);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+
+function pad(n) {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+
+function dateKey(tsOrDate) {
+  const d = tsOrDate instanceof Date ? tsOrDate : new Date(tsOrDate);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function makeCalendarFormatter(map) {
+  return function formatter(day) {
+    if (map[dateKey(day.date)]) {
+      day.bottomInfo = "报名";
+      day.className = `${day.className || ""} calendar-day-active`;
+    }
+    return day;
+  };
+}
+
 function toTimestamp(date, time) {
   if (!date || !time) return 0;
   return new Date(`${date.replace(/-/g, "/")} ${time}:00`).getTime();
@@ -20,6 +46,7 @@ Page({
     submitting: false,
     showCalendar: false,
     calendarDefaultDate: null,
+    calendarFormatter: makeCalendarFormatter({}),
     form: {
       date: "",
       startTime: "",
@@ -31,6 +58,7 @@ Page({
   },
 
   onLoad(options) {
+    this.loadActiveDates();
     if (options.id) {
       this.setData({ isEdit: true, eventId: options.id });
       wx.setNavigationBarTitle({ title: "编辑活动" });
@@ -43,6 +71,26 @@ Page({
         showCalendar: true,
       });
     }
+  },
+
+  loadActiveDates() {
+    const today = startOfDay(Date.now());
+    request(
+      "event.activeDates",
+      {
+        startDate: today - 365 * DAY,
+        endDate: today + 365 * DAY + DAY,
+      },
+      { toast: false }
+    )
+      .then((data) => {
+        const map = {};
+        (data.times || []).forEach((t) => {
+          map[dateKey(t)] = true;
+        });
+        this.setData({ calendarFormatter: makeCalendarFormatter(map) });
+      })
+      .catch(() => {});
   },
 
   loadEvent(id) {
@@ -75,6 +123,7 @@ Page({
 
   openCalendar() {
     const cur = this.data.form.date;
+    this.loadActiveDates();
     this.setData({
       calendarDefaultDate: cur ? new Date(cur.replace(/-/g, "/")).getTime() : Date.now(),
       showCalendar: true,

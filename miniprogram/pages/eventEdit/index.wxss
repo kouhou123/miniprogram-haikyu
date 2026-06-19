@@ -77,3 +77,8 @@
   background: #fff;
   box-shadow: 0 -2rpx 12rpx rgba(0, 0, 0, 0.05);
 }
+
+.calendar-day-active {
+  color: #f59a23;
+  font-weight: 600;
+}

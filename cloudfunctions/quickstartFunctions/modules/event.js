@@ -8,6 +8,7 @@ exports.byDate = byDate;
 exports.detail = detail;
 exports.close = close;
 exports.cancel = cancel;
+exports.remove = remove;
 const response_1 = require("../core/response");
 const auth_1 = require("../core/auth");
 const cloud_1 = require("../core/cloud");
@@ -231,4 +232,18 @@ async function cancel(data, ctx) {
         .doc(id)
         .update({ data: { status: collections_1.EventStatus.CANCELLED, updatedAt: Date.now() } });
     return (0, response_1.success)({ _id: id, status: collections_1.EventStatus.CANCELLED });
+}
+// 删除活动（管理员，连同报名记录一并删除，不可恢复）
+async function remove(data, ctx) {
+    await (0, auth_1.requireOrganizer)(ctx.openid);
+    const id = (0, validate_1.requireString)(data === null || data === void 0 ? void 0 : data._id, "_id");
+    await getEventOrThrow(id);
+    // 先删除该活动的全部报名记录（云数据库批量删除走 where().remove()）
+    await cloud_1.db
+        .collection(collections_1.Collections.REGISTRATIONS)
+        .where({ eventId: id })
+        .remove()
+        .catch(() => null);
+    await events().doc(id).remove();
+    return (0, response_1.success)({ _id: id, removed: true });
 }

@@ -256,7 +256,7 @@ async function list(data, ctx) {
     const openid = (0, auth_1.requireLogin)(ctx.openid);
     const organizer = await (0, auth_1.isOrganizer)(openid);
     const eventId = (0, validate_1.optionalString)(data === null || data === void 0 ? void 0 : data.eventId);
-    const filter = { status: collections_1.RegistrationStatus.REGISTERED };
+    const filter = { openid, status: collections_1.RegistrationStatus.REGISTERED };
     if (eventId)
         filter.eventId = eventId;
     const regs = await registrations()

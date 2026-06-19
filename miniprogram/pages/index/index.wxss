@@ -101,6 +101,13 @@
 .act.disabled {
   background: #c4c9d4;
 }
+.act-delete {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx 12rpx;
+}
 
 .loading {
   text-align: center;

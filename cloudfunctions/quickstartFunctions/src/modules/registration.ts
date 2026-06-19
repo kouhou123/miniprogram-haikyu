@@ -287,7 +287,7 @@ export async function list(data: any, ctx: WxContext): Promise<ApiResponse> {
   const organizer = await isOrganizer(openid);
   const eventId = optionalString(data?.eventId);
 
-  const filter: any = { status: RegistrationStatus.REGISTERED };
+  const filter: any = { openid, status: RegistrationStatus.REGISTERED };
   if (eventId) filter.eventId = eventId;
 
   const regs = await registrations()
