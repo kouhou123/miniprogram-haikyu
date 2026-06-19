@@ -42,8 +42,4 @@
       <text class="arrow">›</text>
     </view>
   </view>
-
-  <view wx:if="{{!isOrganizer}}" class="tip card">
-    成为活动组织者后即可发布活动。请联系管理员将你的 openid 加入组织者白名单。
-  </view>
 </view>
