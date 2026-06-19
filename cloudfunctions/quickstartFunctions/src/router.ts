@@ -30,6 +30,7 @@ const routes: Record<string, Handler> = {
   "event.detail": eventModule.detail,
   "event.close": eventModule.close,
   "event.cancel": eventModule.cancel,
+  "event.remove": eventModule.remove,
   // 报名
   "registration.register": registrationModule.register,
   "registration.adminCreate": registrationModule.adminCreate,

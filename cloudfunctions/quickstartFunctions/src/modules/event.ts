@@ -237,3 +237,20 @@ export async function cancel(data: any, ctx: WxContext): Promise<ApiResponse> {
     .update({ data: { status: EventStatus.CANCELLED, updatedAt: Date.now() } });
   return success({ _id: id, status: EventStatus.CANCELLED });
 }
+
+// 删除活动（管理员，连同报名记录一并删除，不可恢复）
+export async function remove(data: any, ctx: WxContext): Promise<ApiResponse> {
+  await requireOrganizer(ctx.openid);
+  const id = requireString(data?._id, "_id");
+  await getEventOrThrow(id);
+
+  // 先删除该活动的全部报名记录（云数据库批量删除走 where().remove()）
+  await db
+    .collection(Collections.REGISTRATIONS)
+    .where({ eventId: id })
+    .remove()
+    .catch(() => null);
+
+  await events().doc(id).remove();
+  return success({ _id: id, removed: true });
+}

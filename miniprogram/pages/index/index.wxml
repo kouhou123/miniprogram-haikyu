@@ -55,6 +55,9 @@
           <view wx:if="{{item.registered}}" class="btn-danger act" data-id="{{item._id}}" catchtap="onCancel">取消报名</view>
           <view wx:elif="{{item.status === 'open'}}" class="btn-primary act" data-id="{{item._id}}" data-status="{{item.status}}" data-registered="{{item.registered}}" catchtap="onCardTap">立即报名</view>
           <view wx:else class="btn-primary act disabled">{{item.statusText}}</view>
+          <view wx:if="{{isOrganizer}}" class="act-delete" data-id="{{item._id}}" data-title="{{item.title}}" catchtap="onDeleteEvent">
+            <van-icon name="delete-o" size="20px" color="#ee0a24" />
+          </view>
         </view>
       </view>
     </view>
