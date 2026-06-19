@@ -22,7 +22,7 @@ async function login(data, ctx) {
             openid,
             nickName,
             avatarUrl,
-            phone: "",
+            motto: "",
             createdAt: now,
             updatedAt: now,
         };
@@ -49,8 +49,8 @@ async function updateProfile(data, ctx) {
         patch.nickName = (0, validate_1.optionalString)(data.nickName);
     if ((data === null || data === void 0 ? void 0 : data.avatarUrl) !== undefined)
         patch.avatarUrl = (0, validate_1.optionalString)(data.avatarUrl);
-    if ((data === null || data === void 0 ? void 0 : data.phone) !== undefined)
-        patch.phone = (0, validate_1.optionalString)(data.phone);
+    if ((data === null || data === void 0 ? void 0 : data.motto) !== undefined)
+        patch.motto = (0, validate_1.optionalString)(data.motto);
     const res = await cloud_1.db
         .collection(collections_1.Collections.USERS)
         .where({ openid })

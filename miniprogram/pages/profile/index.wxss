@@ -26,6 +26,9 @@
   margin-top: 12rpx;
 }
 .role-badge {
+  display: inline-block;
+  line-height: 1.4;
+  white-space: nowrap;
   font-size: 22rpx;
   color: #999;
   background: #f0f0f0;
