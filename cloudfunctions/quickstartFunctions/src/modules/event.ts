@@ -109,12 +109,52 @@ export async function list(data: any, ctx: WxContext): Promise<ApiResponse> {
   return success({ list: res.data, page, pageSize });
 }
 
+export async function activeDates(data: any, ctx: WxContext): Promise<ApiResponse> {
+  const start = requireNumber(data?.startDate, "startDate");
+  const end = requireNumber(data?.endDate, "endDate");
+  const startDate = Math.min(start, end);
+  const endDate = Math.max(start, end);
+  // 返回原始开始时间，由客户端按自身时区归类到具体日期，避免时区不一致导致标记错位
+  const times: number[] = [];
+  const pageSize = 100;
+  let page = 0;
+
+  while (true) {
+    const res = await events()
+      .where({ startTime: _.gte(startDate).and(_.lt(endDate)) })
+      .orderBy("startTime", "asc")
+      .skip(page * pageSize)
+      .limit(pageSize)
+      .get();
+
+    const list: any[] = res.data || [];
+    list.forEach((ev: any) => {
+      if (ev.status === EventStatus.CANCELLED) return;
+      times.push(ev.startTime);
+    });
+
+    if (list.length < pageSize) break;
+    page += 1;
+  }
+
+  return success({ times });
+}
+
 // 某一天的活动列表（按日历日期查询，附带当前用户是否已报名）
+// 客户端按自身时区计算好当天的毫秒区间 [dayStart, dayEnd) 传入，避免云函数时区与客户端不一致
 export async function byDate(data: any, ctx: WxContext): Promise<ApiResponse> {
-  const dayTs = requireNumber(data?.date, "date");
-  const d = new Date(dayTs);
-  const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+  let dayStart: number;
+  let dayEnd: number;
+  if (data?.dayStart !== undefined && data?.dayEnd !== undefined) {
+    dayStart = requireNumber(data.dayStart, "dayStart");
+    dayEnd = requireNumber(data.dayEnd, "dayEnd");
+  } else {
+    // 兼容旧参数：按服务器时区推算当天区间
+    const dayTs = requireNumber(data?.date, "date");
+    const d = new Date(dayTs);
+    dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    dayEnd = dayStart + 24 * 60 * 60 * 1000;
+  }
 
   const res = await events()
     .where({ startTime: _.gte(dayStart).and(_.lt(dayEnd)) })
@@ -125,16 +165,22 @@ export async function byDate(data: any, ctx: WxContext): Promise<ApiResponse> {
 
   // 标记当前用户已报名的活动，便于前端展示报名/取消按钮
   if (ctx.openid && list.length > 0) {
-    const ids = list.map((e: any) => e._id);
-    const regs = await db
-      .collection(Collections.REGISTRATIONS)
-      .where({
-        eventId: _.in(ids),
-        openid: ctx.openid,
-        status: RegistrationStatus.REGISTERED,
-      })
-      .get();
-    const registeredSet = new Set(regs.data.map((r: any) => r.eventId));
+    let registeredSet = new Set<string>();
+    try {
+      const ids = list.map((e: any) => e._id);
+      const regs = await db
+        .collection(Collections.REGISTRATIONS)
+        .where({
+          eventId: _.in(ids),
+          openid: ctx.openid,
+          status: RegistrationStatus.REGISTERED,
+        })
+        .get();
+      registeredSet = new Set(regs.data.map((r: any) => r.eventId));
+    } catch (err) {
+      // registrations 集合可能尚未创建，视为无人报名，避免整个查询失败
+      console.warn("[event.byDate] 读取报名记录失败", err);
+    }
     list.forEach((e: any) => {
       e.registered = registeredSet.has(e._id);
     });

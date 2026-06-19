@@ -1,4 +1,4 @@
-// pages/index/index.js 活动日历
+// pages/index/index.js
 const { request } = require("../../utils/request");
 const auth = require("../../utils/auth");
 const { formatEventTime, statusText, formatDate } = require("../../utils/format");
@@ -6,14 +6,34 @@ const { formatEventTime, statusText, formatDate } = require("../../utils/format"
 const DAY = 24 * 60 * 60 * 1000;
 const WEEK = ["日", "一", "二", "三", "四", "五", "六"];
 
-// 取某个时间戳所在自然日的 0 点
+let activeDateMap = {};
+
 function startOfDay(ts) {
   const d = new Date(ts);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 
+function pad(n) {
+  return n < 10 ? `0${n}` : `${n}`;
+}
+
+function dateKey(tsOrDate) {
+  const d = tsOrDate instanceof Date ? tsOrDate : new Date(tsOrDate);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
 function buildLabel(ts) {
   return `${formatDate(ts)} 周${WEEK[new Date(ts).getDay()]}`;
+}
+
+function makeCalendarFormatter(map) {
+  return function formatter(day) {
+    if (map[dateKey(day.date)]) {
+      day.bottomInfo = "报名";
+      day.className = `${day.className || ""} calendar-day-active`;
+    }
+    return day;
+  };
 }
 
 Page({
@@ -23,9 +43,16 @@ Page({
     minDate: 0,
     maxDate: 0,
     selectedDate: 0,
+    calendarFormatter: makeCalendarFormatter(activeDateMap),
     dateLabel: "",
     dayEvents: [],
     dayLoading: false,
+    dayHint: "",
+    showRegForm: false,
+    submitting: false,
+    regEventId: "",
+    regEventTitle: "",
+    regForm: { name: "", remark: "" },
   },
 
   onLoad() {
@@ -45,42 +72,74 @@ Page({
 
   onShow() {
     this.setData({ isOrganizer: auth.isOrganizer() });
+    this.loadActiveDates();
     this.loadDayEvents();
   },
 
   onPullDownRefresh() {
+    this.loadActiveDates();
     this.loadDayEvents(() => wx.stopPullDownRefresh());
   },
 
-  // 打开日历
   onDisplay() {
     this.setData({ showCalendar: true });
+    this.loadActiveDates();
   },
 
   onCloseCalendar() {
     this.setData({ showCalendar: false });
   },
 
-  // 选定日期：show-confirm 为 false 时点击日期即触发
-  onConfirmDate(e) {
+  onSelectDate(e) {
     const ts = startOfDay(e.detail);
     this.setData({
       showCalendar: false,
       selectedDate: ts,
       dateLabel: buildLabel(ts),
+      dayHint: "",
     });
     this.loadDayEvents();
   },
 
+  loadActiveDates() {
+    if (!this.data.minDate || !this.data.maxDate) return;
+
+    request(
+      "event.activeDates",
+      {
+        startDate: this.data.minDate,
+        endDate: this.data.maxDate + DAY,
+      },
+      { toast: false }
+    )
+      .then((data) => {
+        const map = {};
+        (data.times || []).forEach((t) => {
+          map[dateKey(t)] = true;
+        });
+        activeDateMap = map;
+        this.setData({ calendarFormatter: makeCalendarFormatter(activeDateMap) });
+      })
+      .catch(() => {});
+  },
+
   loadDayEvents(done) {
-    this.setData({ dayLoading: true });
-    request("event.byDate", { date: this.data.selectedDate }, { toast: false })
+    const dayStart = this.data.selectedDate;
+    this.setData({ dayLoading: true, dayHint: "" });
+    request(
+      "event.byDate",
+      {
+        dayStart,
+        dayEnd: dayStart + DAY,
+      },
+      { toast: false }
+    )
       .then((data) => {
         const list = (data.list || []).map(this.decorate);
-        this.setData({ dayEvents: list, dayLoading: false });
+        this.setData({ dayEvents: list, dayLoading: false, dayHint: "" });
       })
       .catch(() => {
-        this.setData({ dayEvents: [], dayLoading: false });
+        this.setData({ dayEvents: [], dayLoading: false, dayHint: "" });
       })
       .finally(() => {
         if (done) done();
@@ -95,23 +154,72 @@ Page({
     });
   },
 
-  onRegister(e) {
-    const id = e.currentTarget.dataset.id;
+  onCardTap(e) {
+    const { id, status, registered } = e.currentTarget.dataset;
+    if (registered) {
+      wx.showToast({ title: "您已报名该活动", icon: "none" });
+      return;
+    }
+    if (status !== "open") {
+      wx.showToast({ title: statusText(status) || "暂不可报名", icon: "none" });
+      return;
+    }
+    this.openRegisterForm(id);
+  },
+
+  openRegisterForm(id) {
+    const ev = this.data.dayEvents.find((item) => item._id === id) || {};
     const user = auth.getUser() || {};
+    this.setData({
+      showRegForm: true,
+      regEventId: id,
+      regEventTitle: ev.title || "",
+      regForm: { name: user.nickName || "", remark: "" },
+    });
+  },
+
+  closeRegForm() {
+    this.setData({
+      showRegForm: false,
+      regEventId: "",
+      regEventTitle: "",
+      regForm: { name: "", remark: "" },
+    });
+  },
+
+  onRegNameInput(e) {
+    this.setData({ "regForm.name": e.detail.value });
+  },
+
+  onRegRemarkInput(e) {
+    this.setData({ "regForm.remark": e.detail.value });
+  },
+
+  noop() {},
+
+  submitRegistration() {
+    if (this.data.submitting) return;
+    const name = this.data.regForm.name.trim();
+    const remark = this.data.regForm.remark.trim();
+    if (!name) {
+      wx.showToast({ title: "请输入名字", icon: "none" });
+      return;
+    }
+
+    this.setData({ submitting: true });
     request(
       "registration.register",
-      {
-        eventId: id,
-        userName: user.nickName || "",
-        userPhone: user.phone || "",
-      },
+      { eventId: this.data.regEventId, name, remark },
       { loading: true, loadingText: "报名中..." }
     )
       .then(() => {
         wx.showToast({ title: "报名成功" });
+        this.closeRegForm();
+        this.loadActiveDates();
         this.loadDayEvents();
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => this.setData({ submitting: false }));
   },
 
   onCancel(e) {
@@ -128,6 +236,7 @@ Page({
         )
           .then(() => {
             wx.showToast({ title: "已取消报名" });
+            this.loadActiveDates();
             this.loadDayEvents();
           })
           .catch(() => {});

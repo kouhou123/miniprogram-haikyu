@@ -1,18 +1,42 @@
 <!--pages/myRegistrations/index.wxml-->
 <view class="page">
-  <view wx:if="{{!loading && list.length === 0}}" class="empty">你还没有报名任何活动</view>
+  <view wx:if="{{loading}}" class="muted loading">加载中...</view>
+  <view wx:elif="{{list.length === 0}}" class="empty">暂无报名记录</view>
 
   <view class="card reg" wx:for="{{list}}" wx:key="_id">
     <view class="reg-main" data-id="{{item.eventId}}" bindtap="goDetail">
       <view class="reg-head">
-        <text class="reg-title">{{item.event.title}}</text>
+        <text class="reg-title">{{item.name || '未填写'}}</text>
         <text class="tag tag-{{item.event.status}}">{{item.event.statusText}}</text>
       </view>
-      <view class="reg-meta">🕒 {{item.event.timeText}}</view>
-      <view class="reg-meta" wx:if="{{item.event.location}}">📍 {{item.event.location}}</view>
+      <view class="reg-meta">活动：{{item.event.title}}</view>
+      <view class="reg-meta">时间：{{item.event.timeText}}</view>
+      <view class="reg-meta" wx:if="{{item.event.location}}">地点：{{item.event.location}}</view>
+      <view class="reg-remark" wx:if="{{item.remark}}">备注：{{item.remark}}</view>
+      <view class="muted admin-note" wx:if="{{item.createdByAdmin}}">管理员添加</view>
     </view>
-    <view class="reg-actions">
-      <view class="btn-danger small" data-id="{{item.eventId}}" bindtap="cancelRegister">取消报名</view>
+    <view class="reg-actions" wx:if="{{item.canEdit || item.canCancel || item.canRemove}}">
+      <view class="btn-ghost small" wx:if="{{item.canEdit}}" data-id="{{item._id}}" bindtap="openEdit">编辑</view>
+      <view class="btn-danger small" wx:if="{{item.canCancel}}" data-event-id="{{item.eventId}}" bindtap="cancelRegister">取消报名</view>
+      <view class="btn-danger small" wx:if="{{item.canRemove}}" data-id="{{item._id}}" bindtap="removeRegistration">删除</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showForm}}" class="modal-mask" catchtap="closeForm">
+    <view class="modal" catchtap="noop">
+      <view class="modal-title">编辑报名</view>
+      <view class="form-row">
+        <text class="form-label">名字</text>
+        <input class="form-input" placeholder="请输入名字" value="{{form.name}}" bindinput="onNameInput" />
+      </view>
+      <view class="form-row top">
+        <text class="form-label">备注</text>
+        <textarea class="form-textarea" placeholder="请输入备注" value="{{form.remark}}" bindinput="onRemarkInput"></textarea>
+      </view>
+      <view class="modal-actions">
+        <view class="btn-ghost flex1" bindtap="closeForm">取消</view>
+        <view class="btn-primary flex1" bindtap="saveRegistration">保存</view>
+      </view>
     </view>
   </view>
 </view>

@@ -82,10 +82,15 @@ Page({
   },
 
   onCalendarConfirm(e) {
-    const date = e.detail.date;
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
+    // 支持 van-calendar 返回的两种形式：
+    // - e.detail 为时间戳（number）
+    // - e.detail.date 为 Date 对象
+    const payload = e.detail;
+    const raw = payload && payload.date ? payload.date : payload;
+    const dt = new Date(raw);
+    const y = dt.getFullYear();
+    const m = String(dt.getMonth() + 1).padStart(2, "0");
+    const d = String(dt.getDate()).padStart(2, "0");
     this.setData({
       "form.date": `${y}-${m}-${d}`,
       showCalendar: false,

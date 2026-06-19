@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # 活动预约报名系统（微信小程序 + 云开发）
 
 基于微信云开发的活动预约报名小程序，支持活动发布管理、报名/取消、人数管理、照片上传，区分「活动组织者」与「普通报名者」两种角色。
@@ -60,6 +59,3 @@ npm run build
 ## 参考文档
 
 - [云开发文档](https://developers.weixin.qq.com/miniprogram/dev/wxcloud/basis/getting-started.html)
-=======
-# -
->>>>>>> 09dbb76386ad113cf074cb83127a11e3ff0b9311

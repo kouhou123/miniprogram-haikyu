@@ -41,7 +41,6 @@ const userModule = __importStar(require("./modules/user"));
 const eventModule = __importStar(require("./modules/event"));
 const registrationModule = __importStar(require("./modules/registration"));
 const photoModule = __importStar(require("./modules/photo"));
-const devModule = __importStar(require("./modules/dev"));
 // 路由表：type -> handler，命名空间风格 模块.动作
 const routes = {
     // 用户
@@ -51,21 +50,24 @@ const routes = {
     "event.create": eventModule.create,
     "event.update": eventModule.update,
     "event.list": eventModule.list,
+    "event.activeDates": eventModule.activeDates,
     "event.byDate": eventModule.byDate,
     "event.detail": eventModule.detail,
     "event.close": eventModule.close,
     "event.cancel": eventModule.cancel,
     // 报名
     "registration.register": registrationModule.register,
+    "registration.adminCreate": registrationModule.adminCreate,
     "registration.cancel": registrationModule.cancel,
+    "registration.update": registrationModule.update,
+    "registration.remove": registrationModule.remove,
+    "registration.list": registrationModule.list,
     "registration.myList": registrationModule.myList,
     "registration.eventRoster": registrationModule.eventRoster,
     // 照片
     "photo.add": photoModule.add,
     "photo.list": photoModule.list,
     "photo.delete": photoModule.remove,
-    // 测试用 mock 数据
-    "dev.seedMockUsers": devModule.seedMockUsers,
 };
 // 统一分发 + 异常处理
 async function dispatch(event) {

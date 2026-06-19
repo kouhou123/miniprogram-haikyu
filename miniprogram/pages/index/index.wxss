@@ -21,10 +21,22 @@
   padding: 28rpx 24rpx 8rpx;
   color: #333;
 }
+.hint {
+  margin: 8rpx 24rpx 0;
+  color: #3b6cff;
+  font-size: 24rpx;
+}
 
 .event {
   padding: 0;
   overflow: hidden;
+}
+.event.clickable {
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+.event.clickable:active {
+  transform: scale(0.99);
+  background: #f5f7ff;
 }
 .event-body {
   padding: 24rpx 28rpx;
@@ -60,6 +72,22 @@
   color: #3b6cff;
 }
 
+.event-tip {
+  margin-top: 18rpx;
+  font-size: 24rpx;
+}
+.tip-open {
+  color: #3b6cff;
+  font-weight: 600;
+}
+.tip-done {
+  color: #52c41a;
+  font-weight: 600;
+}
+.tip-muted {
+  color: #999;
+}
+
 .event-actions {
   display: flex;
   gap: 16rpx;
@@ -77,6 +105,69 @@
 .loading {
   text-align: center;
   padding: 24rpx 0;
+}
+
+.calendar-day-active {
+  color: #f59a23;
+  font-weight: 600;
+}
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+}
+.modal {
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 32rpx 28rpx calc(32rpx + env(safe-area-inset-bottom));
+}
+.modal-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+.modal-sub {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 16rpx;
+}
+.form-row {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+.form-row.top {
+  align-items: flex-start;
+}
+.form-label {
+  width: 110rpx;
+  color: #333;
+  font-size: 28rpx;
+}
+.form-input {
+  flex: 1;
+  font-size: 28rpx;
+}
+.form-textarea {
+  flex: 1;
+  min-height: 150rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+.modal-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 28rpx;
+}
+.flex1 {
+  flex: 1;
 }
 
 .fab {
