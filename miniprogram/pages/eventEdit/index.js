@@ -8,8 +8,8 @@ function toTimestamp(date, time) {
 }
 
 function buildTitle(form) {
-  const note = (form.description || "").trim();
-  if (note) return note.split("\n")[0].slice(0, 30);
+  const loc = (form.location || "").trim();
+  if (loc) return loc.slice(0, 30);
   return `活动 ${form.date}`;
 }
 

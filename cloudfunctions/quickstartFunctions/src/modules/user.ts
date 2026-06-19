@@ -22,7 +22,7 @@ export async function login(data: any, ctx: WxContext): Promise<ApiResponse> {
       openid,
       nickName,
       avatarUrl,
-      phone: "",
+      motto: "",
       createdAt: now,
       updatedAt: now,
     };
@@ -46,7 +46,7 @@ export async function updateProfile(data: any, ctx: WxContext): Promise<ApiRespo
   const patch: any = { updatedAt: Date.now() };
   if (data?.nickName !== undefined) patch.nickName = optionalString(data.nickName);
   if (data?.avatarUrl !== undefined) patch.avatarUrl = optionalString(data.avatarUrl);
-  if (data?.phone !== undefined) patch.phone = optionalString(data.phone);
+  if (data?.motto !== undefined) patch.motto = optionalString(data.motto);
 
   const res = await db
     .collection(Collections.USERS)

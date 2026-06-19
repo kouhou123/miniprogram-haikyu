@@ -6,7 +6,7 @@ Page({
     user: null,
     isOrganizer: false,
     editing: false,
-    form: { nickName: "", avatarUrl: "", phone: "" },
+    form: { nickName: "", avatarUrl: "", motto: "" },
   },
 
   onShow() {
@@ -32,7 +32,7 @@ Page({
       form: {
         nickName: u.nickName || "",
         avatarUrl: u.avatarUrl || "",
-        phone: u.phone || "",
+        motto: u.motto || "",
       },
     });
   },
@@ -62,18 +62,18 @@ Page({
     this.setData({ "form.nickName": e.detail.value });
   },
 
-  onPhoneInput(e) {
-    this.setData({ "form.phone": e.detail.value });
+  onMottoInput(e) {
+    this.setData({ "form.motto": e.detail.value });
   },
 
   saveProfile() {
-    const { nickName, avatarUrl, phone } = this.data.form;
+    const { nickName, avatarUrl, motto } = this.data.form;
     if (!nickName.trim()) {
       wx.showToast({ title: "请输入昵称", icon: "none" });
       return;
     }
     auth
-      .updateProfile({ nickName: nickName.trim(), avatarUrl, phone: phone.trim() })
+      .updateProfile({ nickName: nickName.trim(), avatarUrl, motto: motto.trim() })
       .then(() => {
         wx.showToast({ title: "已保存" });
         this.setData({ editing: false });
