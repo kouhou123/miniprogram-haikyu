@@ -61,15 +61,15 @@
     "game": {
       "list": []
     },
-      "miniprogram": {
-        "list": [
-          {
-            "id": -1,
-            "name": "活动列表",
-            "pathName": "pages/index/index"
-          }
-        ]
-      }
+    "miniprogram": {
+      "list": [
+        {
+          "id": -1,
+          "name": "活动列表",
+          "pathName": "pages/index/index"
+        }
+      ]
+    }
   },
   "compileType": "miniprogram",
   "srcMiniprogramRoot": "miniprogram/",
