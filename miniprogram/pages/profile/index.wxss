@@ -36,11 +36,11 @@
   border-radius: 20rpx;
 }
 .role-badge.organizer {
-  color: #3b6cff;
-  background: rgba(59, 108, 255, 0.1);
+  color: #ff7a18;
+  background: rgba(255, 122, 24, 0.1);
 }
 .edit-link {
-  color: #3b6cff;
+  color: #ff7a18;
   font-size: 26rpx;
 }
 
