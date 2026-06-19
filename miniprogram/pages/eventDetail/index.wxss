@@ -39,7 +39,7 @@
   color: #333;
 }
 .remain {
-  color: #3b6cff;
+  color: #ff7a18;
 }
 
 .section-title {
@@ -51,7 +51,7 @@
   justify-content: space-between;
 }
 .link {
-  color: #3b6cff;
+  color: #ff7a18;
   font-size: 26rpx;
   font-weight: 400;
 }

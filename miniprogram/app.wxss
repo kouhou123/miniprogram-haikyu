@@ -3,7 +3,7 @@ page {
   background: #f2f3f5;
   color: #1a1a1a;
   font-size: 28rpx;
-  --primary: #3b6cff;
+  --primary: #ff7a18;
 }
 
 .container {
@@ -33,7 +33,7 @@ button::after {
 
 /* 主按钮 */
 .btn-primary {
-  background: #3b6cff;
+  background: #ff7a18;
   color: #fff;
   border-radius: 44rpx;
   font-size: 30rpx;
@@ -45,8 +45,8 @@ button::after {
 }
 
 .btn-ghost {
-  border: 2rpx solid #3b6cff;
-  color: #3b6cff;
+  border: 2rpx solid #ff7a18;
+  color: #ff7a18;
   border-radius: 44rpx;
   font-size: 30rpx;
   padding: 20rpx 0;
@@ -70,8 +70,8 @@ button::after {
   border-radius: 20rpx;
 }
 .tag-open {
-  color: #3b6cff;
-  background: rgba(59, 108, 255, 0.1);
+  color: #ff7a18;
+  background: rgba(255, 122, 24, 0.1);
 }
 .tag-full {
   color: #fa8c16;
